@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Age Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ink: #0d0d0d;
+      --paper: #f5f0e8;
+      --cream: #ede7d9;
+      --accent: #c8392b;
+      --muted: #8a7f72;
+      --border: #c4b89a;
+      --shadow: rgba(13,13,13,0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+      color: var(--ink);
+      padding: 2rem;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(196,184,154,0.25) 28px),
+        repeating-linear-gradient(90deg, transparent, transparent 27px, rgba(196,184,154,0.1) 28px);
+    }
+
+    .card {
+      background: var(--cream);
+      border: 2px solid var(--ink);
+      box-shadow: 7px 7px 0 var(--ink);
+      max-width: 520px;
+      width: 100%;
+      padding: 3rem 3rem 2.5rem;
+      position: relative;
+      animation: slideIn 0.5s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .corner {
+      position: absolute;
+      top: -2px; right: -2px;
+      width: 0; height: 0;
+      border-style: solid;
+      border-width: 0 36px 36px 0;
+      border-color: transparent var(--ink) transparent transparent;
+    }
+
+    .label-stamp {
+      display: inline-block;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 2px 8px;
+      margin-bottom: 0.6rem;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 6vw, 2.8rem);
+      font-weight: 900;
+      line-height: 1.05;
+      color: var(--ink);
+      margin-bottom: 0.3rem;
+    }
+
+    h1 span {
+      color: var(--accent);
+    }
+
+    .subtitle {
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 2.2rem;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, var(--ink), transparent);
+      margin-bottom: 2rem;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    label {
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    input {
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: 0;
+      padding: 0.65rem 0.75rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 1.1rem;
+      color: var(--ink);
+      width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    input:focus {
+      border-color: var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    input.error {
+      border-color: var(--accent);
+      box-shadow: 3px 3px 0 var(--accent);
+    }
+
+    .error-msg {
+      font-size: 0.6rem;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      min-height: 1em;
+      margin-top: -0.8rem;
+      margin-bottom: 0.8rem;
+      display: none;
+    }
+
+    .error-msg.visible { display: block; }
+
+    button {
+      width: 100%;
+      padding: 0.9rem;
+      background: var(--ink);
+      color: var(--paper);
+      border: 2px solid var(--ink);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.12s;
+      margin-top: 0.4rem;
+    }
+
+    button:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 4px 4px 0 var(--ink);
+      transform: translate(-2px, -2px);
+    }
+
+    button:active {
+      transform: translate(1px,1px);
+      box-shadow: 1px 1px 0 var(--ink);
+    }
+
+    /* Result */
+    .result {
+      display: none;
+      margin-top: 2rem;
+      border-top: 1.5px solid var(--border);
+      padding-top: 1.8rem;
+      animation: fadeUp 0.45s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    .result.show { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .result-box {
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      padding: 1rem 0.6rem 0.8rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-box::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 3px;
+      width: 100%;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(.16,1,.3,1);
+    }
+
+    .result-box.animate::before { transform: scaleX(1); }
+
+    .result-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--ink);
+      display: block;
+    }
+
+    .result-unit {
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 0.3rem;
+      display: block;
+    }
+
+    .result-extra {
+      font-size: 0.7rem;
+      color: var(--muted);
+      border-top: 1px dashed var(--border);
+      padding-top: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .result-extra strong {
+      color: var(--ink);
+    }
+
+    .footer-note {
+      margin-top: 2rem;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      color: var(--border);
+      text-align: right;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="corner"></div>
+
+  <div class="label-stamp">Utility · v1.0</div>
+  <h1>Age<br><span>Calculator</span></h1>
+  <p class="subtitle">Enter your date of birth to compute your exact age</p>
+  <div class="divider"></div>
+
+  <div class="field-row">
+    <div class="field">
+      <label for="day">Day</label>
+      <input type="number" id="day" placeholder="DD" min="1" max="31" maxlength="2"/>
+    </div>
+    <div class="field">
+      <label for="month">Month</label>
+      <input type="number" id="month" placeholder="MM" min="1" max="12" maxlength="2"/>
+    </div>
+    <div class="field">
+      <label for="year">Year</label>
+      <input type="number" id="year" placeholder="YYYY" min="1900" maxlength="4"/>
+    </div>
+  </div>
+
+  <p class="error-msg" id="error-msg">Please enter a valid date of birth.</p>
+
+  <button onclick="calculateAge()">Calculate My Age →</button>
+
+  <div class="result" id="result">
+    <p class="result-label">You are exactly —</p>
+    <div class="result-grid">
+      <div class="result-box" id="box-y">
+        <span class="result-num" id="res-years">0</span>
+        <span class="result-unit">Years</span>
+      </div>
+      <div class="result-box" id="box-m">
+        <span class="result-num" id="res-months">0</span>
+        <span class="result-unit">Months</span>
+      </div>
+      <div class="result-box" id="box-d">
+        <span class="result-num" id="res-days">0</span>
+        <span class="result-unit">Days</span>
+      </div>
+    </div>
+    <div class="result-extra" id="result-extra"></div>
+  </div>
+
+  
+
+<script>
+  // Clamp inputs on blur
+  ['day','month','year'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => {
+      el.classList.remove('error');
+      document.getElementById('error-msg').classList.remove('visible');
+    });
+  });
+
+  function isLeapYear(y) {
+    return (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+  }
+
+  function daysInMonth(m, y) {
+    return [31, isLeapYear(y) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+  }
+
+  function showError(msg) {
+    const errEl = document.getElementById('error-msg');
+    errEl.textContent = msg;
+    errEl.classList.add('visible');
+    ['day','month','year'].forEach(id => document.getElementById(id).classList.add('error'));
+    document.getElementById('result').classList.remove('show');
+  }
+
+  function animateCount(el, target, duration = 600) {
+    const start = performance.now();
+    const from = 0;
+    function step(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(from + eased * (target - from));
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function calculateAge() {
+    const dayVal  = parseInt(document.getElementById('day').value);
+    const monVal  = parseInt(document.getElementById('month').value);
+    const yearVal = parseInt(document.getElementById('year').value);
+
+    // --- Validation ---
+    if (isNaN(dayVal) || isNaN(monVal) || isNaN(yearVal)) {
+      showError('All fields are required.'); return;
+    }
+    if (monVal < 1 || monVal > 12) {
+      showError('Month must be between 1 and 12.'); return;
+    }
+    if (dayVal < 1 || dayVal > daysInMonth(monVal, yearVal)) {
+      showError(`Day must be between 1 and ${daysInMonth(monVal, yearVal)} for this month.`); return;
+    }
+    if (yearVal < 1900 || yearVal > new Date().getFullYear()) {
+      showError('Please enter a valid birth year.'); return;
+    }
+
+    const today = new Date();
+    const birth = new Date(yearVal, monVal - 1, dayVal);
+
+    if (birth > today) {
+      showError('Date of birth cannot be in the future.'); return;
+    }
+
+    // --- Calculation ---
+    let years  = today.getFullYear() - birth.getFullYear();
+    let months = today.getMonth()    - birth.getMonth();
+    let days   = today.getDate()     - birth.getDate();
+
+    if (days < 0) {
+      months--;
+      days += daysInMonth(birth.getMonth() + 1 || 12, birth.getFullYear());
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    // Extra stats
+    const totalDays   = Math.floor((today - birth) / (1000 * 60 * 60 * 24));
+    const totalWeeks  = Math.floor(totalDays / 7);
+    const totalHours  = totalDays * 24;
+    const nextBirthday = new Date(today.getFullYear(), monVal - 1, dayVal);
+    if (nextBirthday <= today) nextBirthday.setFullYear(today.getFullYear() + 1);
+    const daysUntilBd = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const birthDay = dayNames[birth.getDay()];
+
+    // --- Render ---
+    ['box-y','box-m','box-d'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('animate');
+      void el.offsetWidth; // reflow
+      setTimeout(() => el.classList.add('animate'), 50);
+    });
+
+    const result = document.getElementById('result');
+    result.classList.remove('show');
+    void result.offsetWidth;
+    result.classList.add('show');
+
+    animateCount(document.getElementById('res-years'),  years);
+    animateCount(document.getElementById('res-months'), months, 500);
+    animateCount(document.getElementById('res-days'),   days,   400);
+
+    document.getElementById('result-extra').innerHTML =
+      `You were born on a <strong>${birthDay}</strong>. &nbsp;·&nbsp;
+       <strong>${totalDays.toLocaleString()}</strong> total days lived &nbsp;·&nbsp;
+       <strong>${totalWeeks.toLocaleString()}</strong> weeks &nbsp;·&nbsp;
+       approx. <strong>${totalHours.toLocaleString()}</strong> hours.<br>
+       Your next birthday is in <strong>${daysUntilBd}</strong> day${daysUntilBd !== 1 ? 's' : ''}.`;
+  }
+
+  // Allow Enter key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') calculateAge();
+  });
+</script>
+</body>
+</html>
